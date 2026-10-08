@@ -44,8 +44,12 @@ Crear la base `crud_prueba` en MySQL local. Las tablas las crea Hibernate (`ddl-
 
 ### Backend
 
+Las credenciales de la BD van en variables de entorno (no están en el código). Copia `.env.example` a `.env` en la raíz, completa `DB_PASSWORD` y arranca así:
+
 ```bash
+cp .env.example .env
 cd backend/products
+set -a && . ../../.env && set +a    # carga el .env en la terminal
 ./mvnw spring-boot:run
 ```
 
@@ -73,30 +77,3 @@ npm run dev              # http://localhost:5173
 
 Pendiente.
 
-## Decisiones técnicas
-
-- **Arquitectura en capas simple** (controller → service → repository) y no clean architecture: para un CRUD el costo de más capas no se justifica.
-- **Sin Lombok ni interfaces para los services:** menos magia y menos archivos; el código se lee tal cual.
-- **Un solo punto de acceso HTTP en el front** (`services/http.js`): URL base, JSON y errores centralizados. Si cambia el backend, se toca un archivo.
-- **URL del backend en variable de entorno** (`VITE_API_URL`): el mismo código sirve en local y en la nube.
-- **Manejo de errores en el front:** cada pantalla muestra tres estados (cargando, error, datos/vacío) y mensajes claros si el backend está caído.
-- **Validación en el formulario y también en el backend:** el front da respuesta rápida, pero no es de fiar.
-- **Sin Pinia:** no hay estado compartido entre pantallas; cada vista pide lo que necesita.
-- **Filtros en el navegador:** el volumen es pequeño; si crece, se pasan al backend con paginación.
-- **Monorepo:** un solo repositorio con `backend/` y `frontend/` facilita revisar y desplegar.
-
-## Uso de IA
-
-Documentación de cómo usé IA (Claude Code) como mentor durante la prueba.
-
-| Qué hice | Prompt usado | Qué aprendí |
-|---|---|---|
-| Revisión del backend: lista de hallazgos por gravedad | "Eres mi mentor, no mi programador. Lee el backend y dame hallazgos como preguntas o pistas, ordenados por gravedad" | Que `.orElse(null)` y las excepciones genéricas terminan en 500 y no en 404/400; la necesidad de un `@ControllerAdvice` y de DTOs |
-| Crear el frontend con Vue + Vite | "Empecemos con el front, ¿cómo hago?" | Qué hace `create-vue` y por qué elegir proyecto en blanco, y que el proyecto debe quedar directo en `frontend/` |
-| Instalar Tailwind v4 con Vite | "Quiero instalarle Tailwind según su documentación" | Que v4 usa el plugin `@tailwindcss/vite` y un `@import "tailwindcss"` en el CSS, sin `tailwind.config.js` |
-| Estructura del repositorio | "Se crearon 2 repos, ¿está bien?" | Un monorepo exige borrar los `.git` internos o Git los trata como repos anidados |
-| Armar el frontend según los lineamientos de la prueba | "Hazlo tú, simple, cumpliendo los lineamientos del correo" (IA escribió el código; lo estudio después para poder explicarlo) | Separación en capas en el front, estados de carga/error, variables de entorno y filtros del lado del cliente |
-| Agregar el CRUD de categorías al front y simplificar la interfaz | "Esto no cubre todo el backend, categorías también tiene CRUD; dame una UI de Tailwind muy básica" (IA escribió el código; lo estudio después) | Reutilizar un solo formulario para crear y editar, y que el estilo se pueda mantener mínimo con pocas clases de Tailwind |
-| Formulario propio para categorías, navbar, footer y diseño minimalista | "El form debe estar en un formulario, cumple la arquitectura, ponle navbar y footer, minimalista y muy simple" (IA escribió el código; lo estudio después) | Extraer clases repetidas de Tailwind a `main.css` (`@layer components`) y que lista y formulario sean páginas separadas por ruta |
-| Simplificar: formularios de crear/editar en un modal | "El formulario debe ir en un modal, más simple, es un CRUD simple" (IA escribió el código; lo estudio después) | Un componente modal reutilizable con slot, y un solo estado `editingId` para saber si se crea o se edita |
-| Arreglar el 500 del POST /products sin categoría | "Arréglalo" (IA escribió el código; lo estudio después) | Validar en el service y traducir `IllegalArgumentException` a 400 con un `@RestControllerAdvice`; sin ese manejador, la excepción sigue siendo 500 |
