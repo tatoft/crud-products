@@ -1,5 +1,4 @@
 <script setup>
-// Muestra un mensaje de error (solo si hay mensaje).
 defineProps({ message: { type: String, default: "" } });
 </script>
 
