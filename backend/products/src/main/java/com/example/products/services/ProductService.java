@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ProductService {
@@ -29,11 +30,39 @@ public class ProductService {
 
     //get by id
     public Product getProductById(Long id) {
-        return productRepository.findById(id).orElse(null);
+        return productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Producto no encontrado: " + id));
     }
 
     // post product
     public Product saveProduct(Product product) {
+        product.setId(null);
+        product.setCategory(validateAndGetCategory(product));
+        return productRepository.save(product);
+    }
+
+    // delete product
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new NoSuchElementException("Producto no encontrado: " + id);
+        }
+        productRepository.deleteById(id);
+    }
+
+    // update product
+    public Product updateProductById(Long id, Product product) {
+        Product oldProduct = getProductById(id);
+        Category category = validateAndGetCategory(product);
+
+        oldProduct.setName(product.getName());
+        oldProduct.setPrice(product.getPrice());
+        oldProduct.setDescription(product.getDescription());
+        oldProduct.setCategory(category);
+        return productRepository.save(oldProduct);
+    }
+
+    // Valida los datos (usado al crear y al editar) y devuelve la categoría real de la BD
+    private Category validateAndGetCategory(Product product) {
         if (product.getName() == null || product.getName().isBlank()) {
             throw new IllegalArgumentException("El nombre es obligatorio");
         }
@@ -43,28 +72,8 @@ public class ProductService {
         if (product.getCategory() == null || product.getCategory().getId() == null) {
             throw new IllegalArgumentException("La categoría es obligatoria");
         }
-
-        Category category = categoryRepository.findById(product.getCategory().getId())
+        return categoryRepository.findById(product.getCategory().getId())
                 .orElseThrow(() -> new IllegalArgumentException("La categoría no existe"));
-        product.setCategory(category);
-        return productRepository.save(product);
-    }
-
-    // delete product
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
-    }
-
-    // update product
-    public Product updateProductById(Long id, Product product) {
-        Product oldProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + id));
-
-        oldProduct.setName(product.getName());
-        oldProduct.setPrice(product.getPrice());
-        oldProduct.setDescription(product.getDescription());
-        oldProduct.setCategory(product.getCategory());
-        return productRepository.save(oldProduct);
     }
 
 }

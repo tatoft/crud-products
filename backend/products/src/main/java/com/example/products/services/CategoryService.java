@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class CategoryService {
@@ -24,27 +25,36 @@ public class CategoryService {
 
     // get by id
     public Category findById(Long id) {
-        return categoryRepository.findById(id).orElse(null);
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Categoría no encontrada: " + id));
     }
 
     // add category
-
     public Category addCategory(Category category) {
-        if (category.getName() == null) {
-            throw new IllegalArgumentException("El nombre no puede ser null");
-        }
+        validateName(category);
+        category.setId(null); // al crear, el id lo genera la BD
         return categoryRepository.save(category);
     }
 
     // edit
     public Category updateCategory(Long id, Category category) {
-        Category oldCategory = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Categortia no encontrada: " + id));
+        Category oldCategory = findById(id);
+        validateName(category);
         oldCategory.setName(category.getName());
         return categoryRepository.save(oldCategory);
     }
 
     // delete
     public void deleteCategory(Long id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new NoSuchElementException("Categoría no encontrada: " + id);
+        }
         categoryRepository.deleteById(id);
+    }
+
+    private void validateName(Category category) {
+        if (category.getName() == null || category.getName().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
     }
 }
