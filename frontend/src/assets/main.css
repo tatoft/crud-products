@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Clases reutilizables: así los templates quedan limpios y el diseño consistente */
+@layer components {
+  .btn {
+    @apply inline-block cursor-pointer rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100;
+  }
+  .btn-primary {
+    @apply border-slate-900 bg-slate-900 text-white hover:bg-slate-700;
+  }
+  .input {
+    @apply w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-900 focus:outline-none;
+  }
+  .label {
+    @apply mb-1 block text-sm text-slate-600;
+  }
+  .link {
+    @apply cursor-pointer text-sm text-slate-600 underline hover:text-slate-900;
+  }
+  .link-danger {
+    @apply cursor-pointer text-sm text-red-600 underline hover:text-red-800;
+  }
+  .field-error {
+    @apply mt-1 text-sm text-red-600;
+  }
+}
