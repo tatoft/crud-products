@@ -1,6 +1,8 @@
 package com.example.products.services;
 
+import com.example.products.entities.Category;
 import com.example.products.entities.Product;
+import com.example.products.repositories.CategoryRepository;
 import com.example.products.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,10 +14,12 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     //getAll
@@ -30,12 +34,19 @@ public class ProductService {
 
     // post product
     public Product saveProduct(Product product) {
-        if (product.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("El precio no puede ser negativo");
+        if (product.getName() == null || product.getName().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
         }
-        if (product.getCategory().getId() == null) {
-            throw new IllegalArgumentException("El category no puede ser null");
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("El precio es obligatorio y no puede ser negativo");
         }
+        if (product.getCategory() == null || product.getCategory().getId() == null) {
+            throw new IllegalArgumentException("La categoría es obligatoria");
+        }
+
+        Category category = categoryRepository.findById(product.getCategory().getId())
+                .orElseThrow(() -> new IllegalArgumentException("La categoría no existe"));
+        product.setCategory(category);
         return productRepository.save(product);
     }
 
